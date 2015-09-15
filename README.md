@@ -1,2 +1,3 @@
-# nodejs-socialfeedredux-starter
-Node.js SocialFeed Redux starter project
+# Node.js SocialFeed Redux starter project
+
+## Coming soon!
