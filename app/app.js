@@ -11,7 +11,12 @@ let mongoose = require('mongoose')
 let flash = require('connect-flash')
 let passportMiddleware = require('./middlewares/passport')
 let routes = requireDir('./routes', {recurse: true})
-// TODO: let {getNewPosts} = require('./lib/social')
+let socialMiddleware = require('./middlewares/social')
+
+let io = require('socket.io')
+let browserify = require('browserify-middleware')
+
+let {getNewPosts} = require('./lib/social')
 
 require('songbird')
 
@@ -32,7 +37,8 @@ class App {
     app.set('views', path.join(__dirname, '..', 'views'))
     app.set('view engine', 'ejs') // set up ejs for templating
     
-    // TODO: Add browserify middleware with babelify transform
+    browserify.settings({transform: ['babelify']})
+    app.use('/js/index.js', browserify('./public/js/index.js'))
 
     this.sessionMiddleware = session({
       secret: 'ilovethenodejs',
@@ -51,13 +57,26 @@ class App {
     app.use(passportSessions)
     // Flash messages stored in session
     app.use(flash())
-
+    let social = socialMiddleware(this.config)
     // configure routes
     for (let key in routes) {
       routes[key](app)
     }
     this.server = Server(app)
-    // TODO: this.setupIo()
+    this.io = io(this.server)
+
+    this.setupIo();
+
+    this.io.use(this.convertToIoMiddleware(this.sessionMiddleware));
+    this.io.use(this.convertToIoMiddleware(initializedPassport));
+    this.io.use(this.convertToIoMiddleware(passportSessions));
+    this.io.use(this.convertToIoMiddleware(social));    
+
+
+  }
+
+  convertToIoMiddleware(middleware){
+    return (socket, next) => middleware(socket.request, socket.request.res, next)
   }
 
   async initialize(port) {
@@ -80,6 +99,18 @@ class App {
      * 4. Clear interval on disconnect
      * 5. Only create one interval per session
      */
+    this.io.on('connection', socket => {
+      console.log('a user connected')
+      socket.on('disconnect', () => {
+        console.log('client disconnected')
+        clearInterval(intervalId)
+      })
+  
+      let intervalId = setInterval(async ()=> {
+        let posts = await getNewPosts(socket.request, socket.request.res)
+        socket.emit('posts', {posts})
+      }, 10000)
+    })
   }
 }
 

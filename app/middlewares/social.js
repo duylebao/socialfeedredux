@@ -4,11 +4,11 @@ let facebookMiddleware = require('./facebook')
 
 function socialMiddleware(config) {
   let twitter = twitterMiddleware(config)
-  let facebook = facebookMiddleware(config)
+ // let facebook = facebookMiddleware(config)
   return then(async(req, res, next) => {
     await Promise.all([
-      twitter.promise(req, res),
-      facebook.promise(req, res)
+      twitter.promise(req, res) //,
+    //  facebook.promise(req, res)
     ])
     next()
   })

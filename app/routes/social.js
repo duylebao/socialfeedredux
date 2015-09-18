@@ -21,11 +21,18 @@ async function compose (req, res) {
 }
 
 async function timeline(req, res) {
-  let posts = await getNewPosts(req, res)
-  posts = _.sortBy(_.flatten(posts), 'createdAt')
+  try{
+    let posts = await getNewPosts(req, res)
+    posts = _.sortBy(_.flatten(posts), 'createdAt')
 
-  let state = JSON.stringify({})
-  res.render('timeline.ejs', {posts, state})
+    let state = JSON.stringify({})
+    res.render('timeline.ejs', {posts, state})
+  }catch(e){
+    console.log('timeline error', e)
+    let empty = []
+    let state = JSON.stringify({})
+    res.render('timeline.ejs', {empty, state})
+  }
 }
 
 async function like (req, res) {

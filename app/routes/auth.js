@@ -4,7 +4,7 @@ let isLoggedIn = require('../middlewares/isLoggedIn')
 let {renderViewWithError} = require('../lib/routes')
 
 let scopes = {
-  facebook: ['email', 'read_stream'],
+  facebook: ['email','read_stream'],
   twitter: 'email'
 }
 
