@@ -91,14 +91,6 @@ class App {
   }
 
   setupIo() {
-    /**
-     * TODO: Implement
-     * 1. On connection, get all posts (getNewPosts)
-     * 2. Emit posts on socket
-     * 3. Poll social network on interval
-     * 4. Clear interval on disconnect
-     * 5. Only create one interval per session
-     */
     this.io.on('connection', socket => {
       console.log('a user connected')
       socket.on('disconnect', () => {
@@ -107,9 +99,22 @@ class App {
       })
   
       let intervalId = setInterval(async ()=> {
-        let posts = await getNewPosts(socket.request, socket.request.res)
+        let posts = socket.request.session.cache
+        if (posts && posts.length > 0){
+          let newPosts = await getNewPosts(socket.request, socket.request.res, posts[0].id)
+          if (newPosts){
+            console.log('adding new posts to cache', newPosts)
+            posts = newPosts.concat(posts)
+          }
+        }else{
+          console.log('initial load of posts')
+          posts = await getNewPosts(socket.request, socket.request.res)
+        }
+        if (posts && posts.length > 0){
+          socket.request.session.cache = posts
+        }
         socket.emit('posts', {posts})
-      }, 10000)
+      }, 20000)
     })
   }
 }

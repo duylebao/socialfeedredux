@@ -7,8 +7,8 @@ let {getTweets} = require('./twitter')
 //   return _.sortByOrder(_.flatten(posts), ['createdAt'], ['desc'])
 // }
 
-async function getNewPosts(req, res) {
-  let posts = await Promise.all([getTweets(req, res)])
+async function getNewPosts(req, res, lastTweet) {
+  let posts = await Promise.all([getTweets(req, res, lastTweet)])
   return _.sortByOrder(_.flatten(posts), ['createdAt'], ['desc'])
 }
 

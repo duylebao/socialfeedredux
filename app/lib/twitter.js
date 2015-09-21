@@ -1,11 +1,15 @@
 let _ = require('lodash')
 
-async function getTweets(req, res) {
+async function getTweets(req, res, lastTweet) {
   if (!req.twitter) return []
-
-  // TODO: Set since_id option
-  let [tweets] = await req.twitter.promise.get('statuses/home_timeline')
-  return _.sortByOrder(tweets.map(mapTweet), ['createdAt'], ['desc'])
+  let params = {since_id: lastTweet || 1};
+  try{
+    let url = 'statuses/home_timeline'
+    let [tweets] = await req.twitter.promise.get( url, params)
+    return _.sortByOrder(tweets.map(mapTweet), ['createdAt'], ['desc'])
+  }catch(e){
+    console.log('getTweets error',e, e.message)
+  }
 }
 
 function mapTweet(tweet) {
